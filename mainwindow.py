@@ -1,9 +1,11 @@
-
 import sys
 from PyQt5.uic import loadUi
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QApplication, QDialog
+# from model import Model
 from out_window import Ui_OutputDialog
+
 
 class Ui_Dialog(QDialog):
     def __init__(self):
@@ -16,18 +18,27 @@ class Ui_Dialog(QDialog):
         self.Videocapture_ = None
 
     def refreshAll(self):
-        self.Videocapture_ = "0"  #Set the text of lineEdit once it's valid
+        """
+        Set the text of lineEdit once it's valid
+        """
+        self.Videocapture_ = "0"
 
     @pyqtSlot()
     def runSlot(self):
-        print("Clicked Run")   #Called when the user presses the Run button
+        """
+        Called when the user presses the Run button
+        """
+        print("Clicked Run")
         self.refreshAll()
         print(self.Videocapture_)
         ui.hide()  # hide the main window
         self.outputWindow_()  # Create and open new output window
 
     def outputWindow_(self):
-        self._new_window = Ui_OutputDialog() # Called when the user presses the Run button
+        """
+        Created new window for vidual output of the video in GUI
+        """
+        self._new_window = Ui_OutputDialog()
         self._new_window.show()
         self._new_window.startVideo(self.Videocapture_)
         print("Video Played")
