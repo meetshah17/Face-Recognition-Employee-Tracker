@@ -1,21 +1,24 @@
-
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.uic import loadUi
 from PyQt5.QtCore import pyqtSlot, QTimer, QDate, Qt
-from PyQt5.QtWidgets import QDialog,QMessageBox
+from PyQt5.QtWidgets import QDialog, QMessageBox
 import cv2
 import face_recognition
 import numpy as np
 import datetime
 import os
 import csv
+import sqlite3
 
 class Ui_OutputDialog(QDialog):
     def __init__(self):
         super(Ui_OutputDialog, self).__init__()
         loadUi("./outputwindow.ui", self)
 
-        #Update time
+        # Initialize dictionary to track clock-in/clock-out status for each employee
+        self.employee_status = {}
+
+        # Update time
         now = QDate.currentDate()
         current_date = now.toString('dd MM yyyy')
         current_time = datetime.datetime.now().strftime("%I:%M %p")
@@ -31,9 +34,9 @@ class Ui_OutputDialog(QDialog):
         :return:
         """
         if len(camera_name) == 1:
-        	self.capture = cv2.VideoCapture(int(camera_name))
+            self.capture = cv2.VideoCapture(int(camera_name))
         else:
-        	self.capture = cv2.VideoCapture(camera_name)
+            self.capture = cv2.VideoCapture(camera_name)
         self.timer = QTimer(self)  # Create Timer
         path = 'ImagesAttendance'
         if not os.path.exists(path):
@@ -60,6 +63,65 @@ class Ui_OutputDialog(QDialog):
         self.timer.timeout.connect(self.update_frame)  # Connect timeout to the output function
         self.timer.start(10)  # emit the timeout() signal at x=40ms
 
+    def mark_attendance(self, name, action):
+        """
+        :param name: detected face known or unknown one
+        :param action: Clock In or Clock Out
+        """
+        if name != 'unknown':
+            if action == 'Clock In':
+                if self.employee_status.get(name) == 'Clock In':
+                    # Employee is already clocked in
+                    QMessageBox.information(self, 'Clock In', 'You are already clocked in.')
+                    return
+                elif self.employee_status.get(name) == 'Clock Out':
+                    # Employee is clocked out, updating status to clocked in
+                    self.employee_status[name] = 'Clock In'
+                else:
+                    # New employee, initializing status as clocked in
+                    self.employee_status[name] = 'Clock In'
+            elif action == 'Clock Out':
+                if self.employee_status.get(name) == 'Clock Out':
+                    # Employee is already clocked out
+                    QMessageBox.information(self, 'Clock Out', 'You are already clocked out.')
+                    return
+                elif self.employee_status.get(name) != 'Clock In':
+                    # Employee is not clocked in
+                    QMessageBox.information(self, 'Clock Out', 'You need to clock in first.')
+                    return
+                else:
+                    # Updating status to clocked out
+                    self.employee_status[name] = 'Clock Out'
+
+            # Proceed with attendance marking
+            with sqlite3.connect('attendance.db') as conn:
+                cursor = conn.cursor()
+                date_time_string = datetime.datetime.now().strftime("%d/%m/%y %H:%M:%S")
+                cursor.execute("INSERT INTO attendance (name, datetime, action) VALUES (?, ?, ?)",
+                               (name, date_time_string, action))
+                conn.commit()
+                if action == 'Clock In':
+                    # Update UI for clock in
+                    self.ClockInButton.setChecked(False)
+                    self.NameLabel.setText(name)
+                    self.StatusLabel.setText('Clocked In')
+                    self.HoursLabel.setText('Measuring')
+                    self.MinLabel.setText('')
+                    self.Time1 = datetime.datetime.now()
+                elif action == 'Clock Out':
+                    # Update UI for clock out
+                    self.ClockOutButton.setChecked(False)
+                    self.NameLabel.setText(name)
+                    self.StatusLabel.setText('Clocked Out')
+                    self.Time2 = datetime.datetime.now()
+                    self.ElapseList(name)
+                    self.TimeList2.append(datetime.datetime.now())
+                    CheckInTime = self.TimeList1[-1]
+                    CheckOutTime = self.TimeList2[-1]
+                    self.ElapseHours = (CheckOutTime - CheckInTime)
+                    self.MinLabel.setText("{:.0f}".format(abs(self.ElapseHours.total_seconds() / 60) % 60) + 'm')
+                    self.HoursLabel.setText("{:.0f}".format(abs(self.ElapseHours.total_seconds() / 60 ** 2)) + 'h')
+
     def face_rec_(self, frame, encode_list_known, class_names):
         """
         :param frame: frame from camera
@@ -67,25 +129,40 @@ class Ui_OutputDialog(QDialog):
         :param class_names: known face names
         :return:
         """
+        # Initialize variables to keep track of clock in/out actions
+        clock_in_action = False
+        clock_out_action = False
 
-        
-
-        # face recognition
+        # Face recognition loop...
         faces_cur_frame = face_recognition.face_locations(frame)
         encodes_cur_frame = face_recognition.face_encodings(frame, faces_cur_frame)
-        # count = 0
         for encodeFace, faceLoc in zip(encodes_cur_frame, faces_cur_frame):
             match = face_recognition.compare_faces(encode_list_known, encodeFace, tolerance=0.50)
             face_dis = face_recognition.face_distance(encode_list_known, encodeFace)
             name = "unknown"
             best_match_index = np.argmin(face_dis)
-            # print("s",best_match_index)
             if match[best_match_index]:
                 name = class_names[best_match_index].upper()
                 y1, x2, y2, x1 = faceLoc
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
                 cv2.rectangle(frame, (x1, y2 - 20), (x2, y2), (0, 255, 0), cv2.FILLED)
                 cv2.putText(frame, name, (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 255), 1)
+
+                # Check if clock in or clock out button is checked
+                if self.ClockInButton.isChecked():
+                    if not clock_in_action:
+                        self.mark_attendance(name, 'Clock In')
+                        clock_in_action = True
+                elif self.ClockOutButton.isChecked():
+                    if not clock_out_action:
+                        self.mark_attendance(name, 'Clock Out')
+                        clock_out_action = True
+
+        # Uncheck clock in/out buttons after actions are completed
+        if clock_in_action:
+            self.ClockInButton.setChecked(False)
+        if clock_out_action:
+            self.ClockOutButton.setChecked(False)
 
         return frame
 
@@ -98,6 +175,25 @@ class Ui_OutputDialog(QDialog):
         msg.setWindowTitle("MessageBox demo")
         msg.setDetailedText("The details are as follows:")
         msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+
+
+    def ElapseList(self, name):
+        with sqlite3.connect('attendance.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT datetime, action FROM attendance WHERE name = ?", (name,))
+            rows = cursor.fetchall()
+
+            Time1 = datetime.datetime.now()
+            Time2 = datetime.datetime.now()
+
+            for row in rows:
+                datetime_str, action = row
+                if action == 'Clock In':
+                    Time1 = datetime.datetime.strptime(datetime_str, '%d/%m/%y %H:%M:%S')
+                    self.TimeList1.append(Time1)
+                elif action == 'Clock Out':
+                    Time2 = datetime.datetime.strptime(datetime_str, '%d/%m/%y %H:%M:%S')
+                    self.TimeList2.append(Time2)
 
     def update_frame(self):
         ret, self.image = self.capture.read()

@@ -1,0 +1,131 @@
+/* Add your custom CSS styles here */
+
+body {
+    background-image: url('background.png'); /* Replace 'background.png' with the path to your background image */
+    background-size: cover;
+    background-position: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    color: white; /* Change text color to white */
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white; /* Set table background color to white */
+}
+
+.table th,
+.table td {
+    padding: 8px;
+    text-align: left;
+    vertical-align: top;
+    border: 1px solid #dee2e6;
+}
+
+.table th {
+    background-color: #343a40; /* Header background color */
+    color: white; /* Header text color */
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.05); /* Alternate row background color */
+}
+
+.table-striped tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.1); /* Hover row background color */
+}
+
+.pagination {
+    margin-top: 20px;
+}
+
+.pagination .page-item .page-link {
+    color: #007bff; /* Pagination link color */
+}
+
+.pagination .page-item.active .page-link {
+    z-index: 3;
+    color: #fff;
+    background-color: #007bff; /* Active page background color */
+    border-color: #007bff;
+}
+
+.pagination .page-link {
+    position: relative;
+    display: block;
+    padding: 0.5rem 0.75rem;
+    margin-left: -1px;
+    line-height: 1.25;
+    color: #007bff; /* Pagination link color */
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+}
+
+.login-bg {
+    background-image: url('background.png'); /* Replace 'login_background.png' with the path to your login background image */
+    background-color: rgb(255, 255, 255);
+}
+
+.register-bg {
+    background-image: url('background.png'); /* Replace 'register_background.png' with the path to your register background image */
+    background-color: rgb(255, 255, 255);
+}
+
+.login-container, .register-container {
+    background-color: rgb(255, 255, 255);
+    max-width: 400px;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    align-items: center;
+    margin: 0 auto;
+    margin-top: 200px;
+    color: black;
+}
+
+.login-container h1, .register-container h1 {
+    text-align: center;
+}
+
+.login-container form, .register-container form {
+    margin-top: 20px;
+}
+
+.login-container form label, .register-container form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.login-container form input, .register-container form input {
+    width: 95%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.login-container form button, .register-container form button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #009879;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.login-container form button:hover, .register-container form button:hover {
+    background-color: #00b38f;
+}
+
+.login-container .error, .register-container .error {
+    color: red;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 10px;
+}

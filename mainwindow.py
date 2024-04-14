@@ -43,7 +43,6 @@ class Ui_Dialog(QDialog):
         self._new_window.startVideo(self.Videocapture_)
         print("Video Played")
 
-
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     ui = Ui_Dialog()

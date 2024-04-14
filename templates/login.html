@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="login-bg">
+    <div class="login-container">
+        <h1>Login</h1>
+        <form method="post">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Login</button>
+        </form>
+        <!-- Add the text "Not yet registered?" along with the "Register" link -->
+        <p>Not yet registered? <a href="{{ url_for('register') }}">Register</a></p>
+        {% if error_message %}
+        <p class="error">{{ error_message }}</p>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>951</width>
+    <width>1000</width>
     <height>591</height>
    </rect>
   </property>
@@ -186,7 +186,7 @@
     <rect>
      <x>660</x>
      <y>110</y>
-     <width>271</width>
+     <width>300</width>
      <height>271</height>
     </rect>
    </property>
@@ -244,7 +244,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Clocked Time : </string>
+        <string>Time : </string>
        </property>
       </widget>
      </item>
